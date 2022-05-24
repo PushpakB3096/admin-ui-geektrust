@@ -6,16 +6,18 @@ import { convertToTitleCase } from "../utils/string";
 interface AdminTableProps {
   members: TableCellMember[];
   setMembers: React.Dispatch<React.SetStateAction<TableCellMember[]>>;
+  cacheAndUpdate: (data: TableCellMember[]) => void;
 }
 
 const AdminTable = (props: AdminTableProps) => {
-  const { members, setMembers } = props;
+  const { members, setMembers, cacheAndUpdate } = props;
   const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
   const [memberToEdit, setMemberToEdit] = useState<TableCellMember | null>(
     null
   );
   const [pageNum, setPageNum] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(
+    // standard formula to determine the total number of pages needed for pagination
     Math.ceil(members.length / CURRENT_PAGE_SIZE)
   );
 
@@ -24,8 +26,10 @@ const AdminTable = (props: AdminTableProps) => {
     currentId: number
   ) => {
     if (e.target.checked) {
+      // selecting a row should save it for deletion later on
       setIdsToDelete([...idsToDelete, currentId]);
     } else {
+      // opposite will happen on uncheck
       setIdsToDelete(idsToDelete.filter(id => id !== currentId));
     }
     setMembers(
@@ -33,6 +37,7 @@ const AdminTable = (props: AdminTableProps) => {
         if (member.id === currentId) {
           return {
             ...member,
+            // toggle the row selection in storage
             checked: !member.checked
           };
         }
@@ -42,15 +47,11 @@ const AdminTable = (props: AdminTableProps) => {
   };
 
   const deleteSelected = () => {
+    // iterate through the original list and remove whichever were deleted
     const newMemberList = members.filter(
       member => !idsToDelete.includes(member.id)
     );
     cacheAndUpdate(newMemberList);
-  };
-
-  const cacheAndUpdate = (updatedMemberList: TableCellMember[]) => {
-    localStorage.setItem("members", JSON.stringify(updatedMemberList));
-    setMembers(updatedMemberList);
   };
 
   const updateMember = () => {
@@ -84,12 +85,9 @@ const AdminTable = (props: AdminTableProps) => {
   };
 
   const singleDelete = (id: number) => {
+    // clicking on delete button should just remove that row
     const newMemberList = members.filter(member => member.id !== id);
     cacheAndUpdate(newMemberList);
-  };
-
-  const changePage = (pageNum: number) => {
-    setPageNum(pageNum);
   };
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,17 +100,12 @@ const AdminTable = (props: AdminTableProps) => {
       members.map(member => {
         return {
           ...member,
+          // checking the select all checkbox should select all, and should remove it otherwise
           checked: !member.checked
         };
       })
     );
   };
-
-  useEffect(() => {
-    if (pageNum) {
-      changePage(pageNum);
-    }
-  }, [pageNum]);
 
   useEffect(() => {
     if (members.length) {
@@ -131,6 +124,7 @@ const AdminTable = (props: AdminTableProps) => {
     );
   }, []);
 
+  // below lines contain standard formula to do client-side pagination
   const startIdx = (pageNum - 1) * CURRENT_PAGE_SIZE;
   const endIdx = startIdx + CURRENT_PAGE_SIZE;
   const paginatedMembers = members.slice(startIdx, endIdx);
@@ -203,6 +197,7 @@ const AdminTable = (props: AdminTableProps) => {
                   className='action-btn'
                   onClick={() => startEditing(member)}
                 >
+                  {/* based on the row being edited, display the corresponding text */}
                   {memberToEdit && member.id === memberToEdit.id
                     ? "Save"
                     : "Edit"}
@@ -225,14 +220,14 @@ const AdminTable = (props: AdminTableProps) => {
         <div className='pagination-container'>
           <button
             disabled={pageNum === 1}
-            onClick={() => changePage(1)}
+            onClick={() => setPageNum(1)}
             className='pagination-btn'
           >
             {"<<"}
           </button>
           <button
             disabled={pageNum < 2}
-            onClick={() => changePage(pageNum - 1)}
+            onClick={() => setPageNum(pageNum - 1)}
             className='pagination-btn'
           >
             {"<"}
@@ -244,7 +239,7 @@ const AdminTable = (props: AdminTableProps) => {
                 return (
                   <button
                     key={idx}
-                    onClick={() => changePage(idx + 1)}
+                    onClick={() => setPageNum(idx + 1)}
                     className='pagination-btn'
                   >
                     {idx + 1}
@@ -254,14 +249,14 @@ const AdminTable = (props: AdminTableProps) => {
           ]}
           <button
             disabled={pageNum === totalPages}
-            onClick={() => changePage(pageNum + 1)}
+            onClick={() => setPageNum(pageNum + 1)}
             className='pagination-btn'
           >
             {">"}
           </button>
           <button
             disabled={pageNum === totalPages}
-            onClick={() => changePage(1)}
+            onClick={() => setPageNum(1)}
             className='pagination-btn'
           >
             {">>"}
