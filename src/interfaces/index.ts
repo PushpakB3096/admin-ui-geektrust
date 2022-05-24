@@ -6,3 +6,7 @@ export interface Member {
   email?: string;
   role?: RoleType;
 }
+
+export interface TableCellMember extends Member {
+  checked?: boolean;
+}

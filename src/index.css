@@ -20,6 +20,21 @@
 .action-btn {
   padding: 0.5rem;
   border: none;
+  border-radius: 4px;
+}
+
+.action-btn:hover {
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.delete-all-btn {
+  background-color: rgba(255, 0, 0, 0.7);
+  color: white;
+}
+
+.delete-all-btn:hover {
+  background-color: rgba(255, 0, 0, 0.9);
 }
 
 .del-btn {

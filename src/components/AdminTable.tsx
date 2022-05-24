@@ -1,23 +1,26 @@
 import { useEffect, useState } from "react";
 import { RoleType, CURRENT_PAGE_SIZE } from "../constants";
-import { Member } from "../interfaces";
+import { Member, TableCellMember } from "../interfaces";
 
 interface AdminTableProps {
-  members: Member[];
-  setMembers: React.Dispatch<React.SetStateAction<Member[]>>;
+  members: TableCellMember[];
+  setMembers: React.Dispatch<React.SetStateAction<TableCellMember[]>>;
 }
 
 const AdminTable = (props: AdminTableProps) => {
-  const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
-  const [memberToEdit, setMemberToEdit] = useState<Member | null>(null);
-  const [pageNum, setPageNum] = useState<number>(1);
   const { members, setMembers } = props;
+  const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
+  const [memberToEdit, setMemberToEdit] = useState<TableCellMember | null>(
+    null
+  );
+  const [pageNum, setPageNum] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(
     Math.ceil(members.length / CURRENT_PAGE_SIZE)
   );
+  const [allSelected, setAllSelected] = useState<boolean>(false);
 
   // TODO: extract this out to a common function
-  const saveToLocalStorage = (newMemberList: Member[]) => {
+  const saveToLocalStorage = (newMemberList: TableCellMember[]) => {
     localStorage.setItem("members", JSON.stringify(newMemberList));
   };
 
@@ -30,6 +33,17 @@ const AdminTable = (props: AdminTableProps) => {
     } else {
       setIdsToDelete(idsToDelete.filter(id => id !== currentId));
     }
+    setMembers(
+      members.map(member => {
+        if (member.id === currentId) {
+          return {
+            ...member,
+            checked: !member.checked
+          };
+        }
+        return member;
+      })
+    );
   };
 
   const deleteSelected = () => {
@@ -51,7 +65,7 @@ const AdminTable = (props: AdminTableProps) => {
     setMembers(updatedMemberList);
   };
 
-  const startEditing = (member: Member) => {
+  const startEditing = (member: TableCellMember) => {
     if (memberToEdit && member.id === memberToEdit.id) {
       setMemberToEdit(null);
       updateMember();
@@ -82,6 +96,23 @@ const AdminTable = (props: AdminTableProps) => {
     setPageNum(pageNum);
   };
 
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setIdsToDelete(members.map(member => member.id));
+    } else {
+      setIdsToDelete([]);
+    }
+    setMembers(
+      members.map(member => {
+        return {
+          ...member,
+          checked: !member.checked
+        };
+      })
+    );
+  };
+  console.log(idsToDelete);
+
   useEffect(() => {
     if (pageNum) {
       changePage(pageNum);
@@ -94,14 +125,20 @@ const AdminTable = (props: AdminTableProps) => {
     }
   }, [members]);
 
+  useEffect(() => {
+    setMembers(
+      members.map(member => {
+        return {
+          ...member,
+          checked: false
+        };
+      })
+    );
+  }, []);
+
   const startIdx = (pageNum - 1) * CURRENT_PAGE_SIZE;
   const endIdx = startIdx + CURRENT_PAGE_SIZE;
   const paginatedMembers = members.slice(startIdx, endIdx);
-
-  console.log({
-    totalPages,
-    val: Math.ceil(members.length / CURRENT_PAGE_SIZE)
-  });
 
   return (
     <div id='table-container'>
@@ -109,7 +146,7 @@ const AdminTable = (props: AdminTableProps) => {
         <tbody>
           <tr>
             <th className='table-cell'>
-              <input type='checkbox' />
+              <input type='checkbox' onChange={e => handleSelectAll(e)} />
             </th>
             <th className='table-cell'>Name</th>
             <th className='table-cell'>Email</th>
@@ -119,12 +156,12 @@ const AdminTable = (props: AdminTableProps) => {
           {paginatedMembers.map(member => (
             <tr key={member.id}>
               <td className='table-cell table-row'>
-                {/* <input
+                <input
                   type='checkbox'
                   className='checkbox'
                   onChange={e => onMemberSelection(e, member.id)}
-                /> */}
-                {member.id}
+                  checked={member.checked}
+                />
               </td>
               <td className='table-cell table-row'>
                 {memberToEdit && memberToEdit.id === member.id ? (
@@ -189,7 +226,7 @@ const AdminTable = (props: AdminTableProps) => {
         </tbody>
       </table>
       <div className='table-footer'>
-        <button className='action-btn' onClick={deleteSelected}>
+        <button className='action-btn delete-all-btn' onClick={deleteSelected}>
           Delete Selected
         </button>
         <div className='pagination-container'>
@@ -211,9 +248,9 @@ const AdminTable = (props: AdminTableProps) => {
             ...Array(totalPages)
               .fill(0)
               .map((_num, idx) => {
-                console.log(totalPages, _num, idx);
                 return (
                   <button
+                    key={idx}
                     onClick={() => changePage(idx + 1)}
                     className='pagination-btn'
                   >
