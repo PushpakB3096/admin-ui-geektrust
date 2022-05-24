@@ -1,7 +1,11 @@
-import "./App.css";
+import { Dashboard } from "./components";
 
 function App() {
-  return <div>Hello, World</div>;
+  return (
+    <div>
+      <Dashboard />
+    </div>
+  );
 }
 
 export default App;
