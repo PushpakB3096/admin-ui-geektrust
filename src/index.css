@@ -1,4 +1,7 @@
 .table-cell {
-  text-align: center;
   padding: 1rem;
+}
+
+.table-row {
+  text-align: center;
 }

@@ -8,13 +8,20 @@ import { Member } from "../interfaces";
 const Dashboard = () => {
   const [members, setMembers] = useState<Member[]>([]);
 
+  const saveToLocalStorage = (data: Member[]) => {
+    localStorage.setItem("members", JSON.stringify(data));
+  };
+
   useEffect(() => {
-    axios.get(API_URL).then(data => setMembers(data.data));
+    axios.get(API_URL).then(data => {
+      saveToLocalStorage(data.data);
+      setMembers(data.data);
+    });
   }, []);
 
   return (
     <div>
-      <AdminTable members={members} />
+      <AdminTable members={members} setMembers={setMembers} />
     </div>
   );
 };
