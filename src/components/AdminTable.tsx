@@ -68,6 +68,12 @@ const AdminTable = (props: AdminTableProps) => {
     }
   };
 
+  // TODO: use single delete inside batch delete
+  const singleDelete = (id: number) => {
+    const newMemberList = members.filter(member => member.id !== id);
+    setMembers(newMemberList);
+  };
+
   return (
     <div>
       <table>
@@ -137,7 +143,7 @@ const AdminTable = (props: AdminTableProps) => {
                     ? "Save"
                     : "Edit"}
                 </span>
-                <span>Delete</span>
+                <span onClick={() => singleDelete(member.id)}>Delete</span>
               </td>
             </tr>
           ))}
