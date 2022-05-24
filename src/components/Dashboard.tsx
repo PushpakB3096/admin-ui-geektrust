@@ -21,7 +21,9 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div>
+    <div id='app-container'>
+      <h2>Admin Dashboard</h2>
+      {/* SearchBar here */}
       <AdminTable members={members} setMembers={setMembers} />
     </div>
   );

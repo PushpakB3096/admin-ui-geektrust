@@ -1,7 +1,60 @@
 .table-cell {
-  padding: 1rem;
+  padding: 1rem 4rem;
+  border-bottom: 1pt solid black;
 }
 
 .table-row {
   text-align: center;
+}
+
+#app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#table-container {
+  margin-top: 2rem;
+}
+
+.action-btn {
+  padding: 0.5rem;
+  border: none;
+}
+
+.del-btn {
+  margin-left: 1rem;
+}
+
+input,
+select {
+  padding: 0.3rem;
+  background-color: rgba(0, 0, 0, 0.06);
+  border: none;
+  width: 5rem;
+}
+
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.75rem 0.5rem;
+}
+
+.pagination-btn {
+  border-radius: 50%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  background-color: rgb(101, 206, 255);
+  color: black;
+  margin-right: 0.5rem;
+}
+
+.pagination-btn:hover {
+  background-color: rgb(66, 172, 221);
+  cursor: pointer;
+}
+
+.pagination-btn:disabled {
+  background-color: rgb(200, 238, 255);
+  cursor: default;
 }

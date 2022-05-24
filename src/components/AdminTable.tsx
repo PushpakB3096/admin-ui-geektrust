@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { RoleType } from "../constants";
+import { useEffect, useState } from "react";
+import { RoleType, CURRENT_PAGE_SIZE } from "../constants";
 import { Member } from "../interfaces";
 
 interface AdminTableProps {
@@ -10,7 +10,11 @@ interface AdminTableProps {
 const AdminTable = (props: AdminTableProps) => {
   const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
   const [memberToEdit, setMemberToEdit] = useState<Member | null>(null);
+  const [pageNum, setPageNum] = useState<number>(1);
   const { members, setMembers } = props;
+  const [totalPages, setTotalPages] = useState<number>(
+    Math.ceil(members.length / CURRENT_PAGE_SIZE)
+  );
 
   // TODO: extract this out to a common function
   const saveToLocalStorage = (newMemberList: Member[]) => {
@@ -43,13 +47,12 @@ const AdminTable = (props: AdminTableProps) => {
       }
       return member;
     });
+    // TODO: save to local storage
     setMembers(updatedMemberList);
-    console.log(memberToEdit);
   };
 
   const startEditing = (member: Member) => {
     if (memberToEdit && member.id === memberToEdit.id) {
-      console.log("saving...");
       setMemberToEdit(null);
       updateMember();
     } else {
@@ -71,12 +74,38 @@ const AdminTable = (props: AdminTableProps) => {
   // TODO: use single delete inside batch delete
   const singleDelete = (id: number) => {
     const newMemberList = members.filter(member => member.id !== id);
+    // TODO: save to local storage
     setMembers(newMemberList);
   };
 
+  const changePage = (pageNum: number) => {
+    setPageNum(pageNum);
+  };
+
+  useEffect(() => {
+    if (pageNum) {
+      changePage(pageNum);
+    }
+  }, [pageNum]);
+
+  useEffect(() => {
+    if (members.length) {
+      setTotalPages(Math.ceil(members.length / CURRENT_PAGE_SIZE));
+    }
+  }, [members]);
+
+  const startIdx = (pageNum - 1) * CURRENT_PAGE_SIZE;
+  const endIdx = startIdx + CURRENT_PAGE_SIZE;
+  const paginatedMembers = members.slice(startIdx, endIdx);
+
+  console.log({
+    totalPages,
+    val: Math.ceil(members.length / CURRENT_PAGE_SIZE)
+  });
+
   return (
-    <div>
-      <table>
+    <div id='table-container'>
+      <table className='table'>
         <tbody>
           <tr>
             <th className='table-cell'>
@@ -87,13 +116,15 @@ const AdminTable = (props: AdminTableProps) => {
             <th className='table-cell'>Role</th>
             <th className='table-cell'>Actions</th>
           </tr>
-          {members.map(member => (
+          {paginatedMembers.map(member => (
             <tr key={member.id}>
               <td className='table-cell table-row'>
-                <input
+                {/* <input
                   type='checkbox'
+                  className='checkbox'
                   onChange={e => onMemberSelection(e, member.id)}
-                />
+                /> */}
+                {member.id}
               </td>
               <td className='table-cell table-row'>
                 {memberToEdit && memberToEdit.id === member.id ? (
@@ -138,18 +169,75 @@ const AdminTable = (props: AdminTableProps) => {
                 )}
               </td>
               <td className='table-cell table-row'>
-                <span onClick={() => startEditing(member)}>
+                <button
+                  className='action-btn'
+                  onClick={() => startEditing(member)}
+                >
                   {memberToEdit && member.id === memberToEdit.id
                     ? "Save"
                     : "Edit"}
-                </span>
-                <span onClick={() => singleDelete(member.id)}>Delete</span>
+                </button>
+                <button
+                  className='action-btn del-btn'
+                  onClick={() => singleDelete(member.id)}
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <button onClick={deleteSelected}>Delete selected</button>
+      <div className='table-footer'>
+        <button className='action-btn' onClick={deleteSelected}>
+          Delete Selected
+        </button>
+        <div className='pagination-container'>
+          <button
+            disabled={pageNum === 1}
+            onClick={() => changePage(1)}
+            className='pagination-btn'
+          >
+            {"<<"}
+          </button>
+          <button
+            disabled={pageNum < 2}
+            onClick={() => changePage(pageNum - 1)}
+            className='pagination-btn'
+          >
+            {"<"}
+          </button>
+          {[
+            ...Array(totalPages)
+              .fill(0)
+              .map((_num, idx) => {
+                console.log(totalPages, _num, idx);
+                return (
+                  <button
+                    onClick={() => changePage(idx + 1)}
+                    className='pagination-btn'
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })
+          ]}
+          <button
+            disabled={pageNum === totalPages}
+            onClick={() => changePage(pageNum + 1)}
+            className='pagination-btn'
+          >
+            {">"}
+          </button>
+          <button
+            disabled={pageNum === totalPages}
+            onClick={() => changePage(1)}
+            className='pagination-btn'
+          >
+            {">>"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
