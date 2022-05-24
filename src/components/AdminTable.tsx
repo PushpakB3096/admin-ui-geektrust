@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { RoleType, CURRENT_PAGE_SIZE } from "../constants";
-import { Member, TableCellMember } from "../interfaces";
+import { TableCellMember } from "../interfaces";
+import { convertToTitleCase } from "../utils/string";
 
 interface AdminTableProps {
   members: TableCellMember[];
@@ -17,12 +18,6 @@ const AdminTable = (props: AdminTableProps) => {
   const [totalPages, setTotalPages] = useState<number>(
     Math.ceil(members.length / CURRENT_PAGE_SIZE)
   );
-  const [allSelected, setAllSelected] = useState<boolean>(false);
-
-  // TODO: extract this out to a common function
-  const saveToLocalStorage = (newMemberList: TableCellMember[]) => {
-    localStorage.setItem("members", JSON.stringify(newMemberList));
-  };
 
   const onMemberSelection = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -50,8 +45,12 @@ const AdminTable = (props: AdminTableProps) => {
     const newMemberList = members.filter(
       member => !idsToDelete.includes(member.id)
     );
-    saveToLocalStorage(newMemberList);
-    setMembers(newMemberList);
+    cacheAndUpdate(newMemberList);
+  };
+
+  const cacheAndUpdate = (updatedMemberList: TableCellMember[]) => {
+    localStorage.setItem("members", JSON.stringify(updatedMemberList));
+    setMembers(updatedMemberList);
   };
 
   const updateMember = () => {
@@ -61,8 +60,7 @@ const AdminTable = (props: AdminTableProps) => {
       }
       return member;
     });
-    // TODO: save to local storage
-    setMembers(updatedMemberList);
+    cacheAndUpdate(updatedMemberList);
   };
 
   const startEditing = (member: TableCellMember) => {
@@ -85,11 +83,9 @@ const AdminTable = (props: AdminTableProps) => {
     }
   };
 
-  // TODO: use single delete inside batch delete
   const singleDelete = (id: number) => {
     const newMemberList = members.filter(member => member.id !== id);
-    // TODO: save to local storage
-    setMembers(newMemberList);
+    cacheAndUpdate(newMemberList);
   };
 
   const changePage = (pageNum: number) => {
@@ -111,7 +107,6 @@ const AdminTable = (props: AdminTableProps) => {
       })
     );
   };
-  console.log(idsToDelete);
 
   useEffect(() => {
     if (pageNum) {
@@ -189,20 +184,18 @@ const AdminTable = (props: AdminTableProps) => {
                 {memberToEdit && memberToEdit.id === member.id ? (
                   <select
                     onChange={e => editMember(e)}
-                    // TODO: handle title casing in role enum properly
                     value={memberToEdit.role?.toUpperCase()}
                     name='role'
                   >
                     <option>Select Role</option>
                     {Object.keys(RoleType).map(type => (
                       <option key={type} value={type}>
-                        {/* TODO: create a title casing util function */}
-                        {type}
+                        {convertToTitleCase(type)}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <span>{member.role}</span>
+                  <span>{convertToTitleCase(member.role!)}</span>
                 )}
               </td>
               <td className='table-cell table-row'>

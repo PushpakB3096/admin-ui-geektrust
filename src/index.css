@@ -73,3 +73,12 @@ select {
   background-color: rgb(200, 238, 255);
   cursor: default;
 }
+
+.search-bar-container {
+  width: 52%;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 0.75rem;
+}
