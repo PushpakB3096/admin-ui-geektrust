@@ -122,6 +122,7 @@ const AdminTable = (props: AdminTableProps) => {
         };
       })
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // below lines contain standard formula to do client-side pagination

@@ -25,6 +25,7 @@ const Dashboard = () => {
         cacheAndUpdate(data.data);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const searchMembers = (searchTerm: string) => {
