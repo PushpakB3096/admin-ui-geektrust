@@ -13,6 +13,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // TODO: only fetch if local storage not there
     axios.get(API_URL).then(data => {
       saveToLocalStorage(data.data);
       setMembers(data.data);

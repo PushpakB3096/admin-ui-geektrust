@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RoleType } from "../constants";
 import { Member } from "../interfaces";
 
 interface AdminTableProps {
@@ -8,6 +9,7 @@ interface AdminTableProps {
 
 const AdminTable = (props: AdminTableProps) => {
   const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
+  const [memberToEdit, setMemberToEdit] = useState<Member | null>(null);
   const { members, setMembers } = props;
 
   // TODO: extract this out to a common function
@@ -15,7 +17,7 @@ const AdminTable = (props: AdminTableProps) => {
     localStorage.setItem("members", JSON.stringify(newMemberList));
   };
 
-  const onCheck = (
+  const onMemberSelection = (
     e: React.ChangeEvent<HTMLInputElement>,
     currentId: number
   ) => {
@@ -34,6 +36,38 @@ const AdminTable = (props: AdminTableProps) => {
     setMembers(newMemberList);
   };
 
+  const updateMember = () => {
+    const updatedMemberList = members.map(member => {
+      if (memberToEdit && member.id === memberToEdit.id) {
+        return memberToEdit;
+      }
+      return member;
+    });
+    setMembers(updatedMemberList);
+    console.log(memberToEdit);
+  };
+
+  const startEditing = (member: Member) => {
+    if (memberToEdit && member.id === memberToEdit.id) {
+      console.log("saving...");
+      setMemberToEdit(null);
+      updateMember();
+    } else {
+      setMemberToEdit(member);
+    }
+  };
+
+  const editMember = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    if (memberToEdit) {
+      setMemberToEdit({
+        ...memberToEdit,
+        [e.target.name]: e.target.value
+      });
+    }
+  };
+
   return (
     <div>
       <table>
@@ -50,13 +84,59 @@ const AdminTable = (props: AdminTableProps) => {
           {members.map(member => (
             <tr key={member.id}>
               <td className='table-cell table-row'>
-                <input type='checkbox' onChange={e => onCheck(e, member.id)} />
+                <input
+                  type='checkbox'
+                  onChange={e => onMemberSelection(e, member.id)}
+                />
               </td>
-              <td className='table-cell table-row'>{member.name}</td>
-              <td className='table-cell table-row'>{member.email}</td>
-              <td className='table-cell table-row'>{member.role}</td>
               <td className='table-cell table-row'>
-                <span>Edit</span>
+                {memberToEdit && memberToEdit.id === member.id ? (
+                  <input
+                    onChange={e => editMember(e)}
+                    value={memberToEdit.name}
+                    name='name'
+                  />
+                ) : (
+                  <span>{member.name}</span>
+                )}
+              </td>
+              <td className='table-cell table-row'>
+                {memberToEdit && memberToEdit.id === member.id ? (
+                  <input
+                    onChange={e => editMember(e)}
+                    value={memberToEdit.email}
+                    name='email'
+                  />
+                ) : (
+                  <span>{member.email}</span>
+                )}
+              </td>
+              <td className='table-cell table-row'>
+                {memberToEdit && memberToEdit.id === member.id ? (
+                  <select
+                    onChange={e => editMember(e)}
+                    // TODO: handle title casing in role enum properly
+                    value={memberToEdit.role?.toUpperCase()}
+                    name='role'
+                  >
+                    <option>Select Role</option>
+                    {Object.keys(RoleType).map(type => (
+                      <option key={type} value={type}>
+                        {/* TODO: create a title casing util function */}
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span>{member.role}</span>
+                )}
+              </td>
+              <td className='table-cell table-row'>
+                <span onClick={() => startEditing(member)}>
+                  {memberToEdit && member.id === memberToEdit.id
+                    ? "Save"
+                    : "Edit"}
+                </span>
                 <span>Delete</span>
               </td>
             </tr>
